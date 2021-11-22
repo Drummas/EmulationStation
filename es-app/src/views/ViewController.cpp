@@ -116,32 +116,45 @@ void ViewController::goToPrevGameList()
 
 void ViewController::goToGameList(SystemData* system)
 {
-	if(mState.viewing == SYSTEM_SELECT)
+	if (system->getName() == "kodi")
 	{
-		// move system list
-		auto sysList = getSystemListView();
-		float offX = sysList->getPosition().x();
-		int sysId = getSystemId(system);
-		sysList->setPosition(sysId * (float)Renderer::getScreenWidth(), sysList->getPosition().y());
-		offX = sysList->getPosition().x() - offX;
-		mCamera.translation().x() -= offX;
+		std::vector<FileData*> files = system->getRootFolder()->getFilesRecursive(GAME);
+		if (files.size() == 1)
+		{
+			FileData* game = files.at(0);
+			launch(game);
+		}
 	}
+	else
+	{	
+		if(mState.viewing == SYSTEM_SELECT)
+		{
+			// move system list
+			auto sysList = getSystemListView();
+			float offX = sysList->getPosition().x();
+			int sysId = getSystemId(system);
+			sysList->setPosition(sysId * (float)Renderer::getScreenWidth(), sysList->getPosition().y());
+			offX = sysList->getPosition().x() - offX;
+			mCamera.translation().x() -= offX;
+		}
 
-	mState.viewing = GAME_LIST;
-	mState.system = system;
+		mState.viewing = GAME_LIST;
+		mState.system = system;
 
-	if (mCurrentView)
-	{
-		mCurrentView->onHide();
+		if (mCurrentView)
+		{
+			mCurrentView->onHide();
+		}
+		mCurrentView = getGameListView(system);
+		if (mCurrentView)
+		{
+			mCurrentView->onShow();
+		}
+		playViewTransition();
+
 	}
-	mCurrentView = getGameListView(system);
-	if (mCurrentView)
-	{
-		mCurrentView->onShow();
-	}
-	playViewTransition();
 }
-
+	
 void ViewController::playViewTransition()
 {
 	Vector3f target(Vector3f::Zero());
